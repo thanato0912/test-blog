@@ -1,14 +1,34 @@
 const express = require('express');
-const mongoose = require('mongoose');
 const app = express();
-mongoose.connect('mongodb+srv://sang:roal1223@test-blog.h3jfc.mongodb.net/<dbname>?retryWrites=true&w=majority',
+const mongoose = require('mongoose');
+const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
+
+const config = require('./config/key');
+
+const {User} = require('./models/user');
+
+mongoose.connect(config.mongoURI,
  {useNewUrlParser: true, useUnifiedTopology: true}).then(()=>console.log('DB connected')).catch(err=>console.error(err));
 
 
+app.use(bodyParser.urlencoded({extended: true}));
+app.use(bodyParser.json()); // --> json reader
+app.use(cookieParser()); //cookie parser for cookie (login)
 
 
-app.get('/', (req, res) => {
-  res.send('hello world!');
+app.post('/api/users/register', (req, res)=> {
+  const user = new User(req.body); /* bodyparser parse all data to fit into the user schema of Mongodb
+                                      take a look at the user schema at user.js*/
+  user.save((err, userData) => {
+    if(err)
+      return res.json({success:false, err}); // .json from bodyparser obviously
+
+    return res.status(200).json({
+      success: true
+    });
+  });
+
 });
 
 
